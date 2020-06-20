@@ -43,9 +43,9 @@ var taskFormHandler = function(event) {
     // no data attribute, so create object as normal and pass to createTaskEl function
     else {
         var taskDataObj = {
-        name: taskNameInput,
-        type: taskTypeInput,
-        status: "to do"
+            name: taskNameInput,
+            type: taskTypeInput,
+            status: "to do"
         }
     };
   
@@ -53,8 +53,6 @@ var taskFormHandler = function(event) {
 };
 
 var createTaskEl = function(taskDataObj) {
-    console.log(taskDataObj);
-    console.log(taskDataObj.status);
     var listItemEl = document.createElement("li");
     listItemEl.className = "task-item";
     // add task id as a custom attribute
@@ -66,8 +64,6 @@ var createTaskEl = function(taskDataObj) {
     taskInfoEl.className = "task-info";
     taskInfoEl.innerHTML = "<h3 class='task-name'>" + taskDataObj.name + "</h3><span class='task-type'>" + taskDataObj.type + "</span>";
     listItemEl.appendChild(taskInfoEl);
-
-    var taskActionsEl = createTaskActions(taskIdCounter);
 
     var taskActionsEl = createTaskActions(taskIdCounter);
     listItemEl.appendChild(taskActionsEl);
@@ -289,11 +285,52 @@ var dragLeaveHandler = function(event) {
     if (taskListEl) {
         taskListEl.removeAttribute("style");
     }
-}
+};
 
 var saveTasks = function() {
-    localStorage.setItem("tasks", JSON.stringify(tasks));
-}
+    localStorage.setItem("tasks", JSON.stringify(tasks))
+};
+
+var loadTasks = function() {
+    tasks = localStorage.getItem("tasks");
+
+    if(tasks === null){
+        tasks = [];
+        return false;
+    };
+
+    tasks = JSON.parse(tasks);
+    
+    for (var i = 0; i < tasks.length; i++){
+        tasks[i].id = taskIdCounter;
+
+        var listItemEl = document.createElement("li");
+        listItemEl.className = "task-item";
+        listItemEl.setAttribute("data-task-id", tasks[i].id);
+        listItemEl.setAttribute("draggable", "true");
+
+        var taskInfoEl = document.createElement("div");
+        taskInfoEl.className = "task-info";
+        taskInfoEl.innerHTML = "<h3 class='task-name'>" + tasks[i].name + "</h3><span class='task-type'>" + tasks[i].type + "</span>";
+        listItemEl.appendChild(taskInfoEl);
+
+        var taskActionsEl = createTaskActions(tasks[i].id);
+        listItemEl.appendChild(taskActionsEl);
+
+        if (tasks[i].status === "to do") {
+            listItemEl.querySelector("select[name='status-change']").selectedIndex = 0;
+        } 
+        else if (tasks[i].status === "in progress") {
+            listItemEl.querySelector("select[name='status-change']").selectedIndex = 1;
+        }
+        else if (tasks[i].status === "completed") {
+            listItemEl.querySelector("select[name='status-change']").selectedIndex = 2;
+        }
+
+        taskIdCounter =+ 1;
+        console.log(listItemEl)
+    };
+};
 
 pageContentEl.addEventListener("dragleave", dragLeaveHandler);
 pageContentEl.addEventListener("dragover", dropZoneDragHandler);
@@ -302,3 +339,5 @@ pageContentEl.addEventListener("change", taskStatusChangeHandler);
 pageContentEl.addEventListener("click", taskButtonHandler);
 pageContentEl.addEventListener("dragstart", dragTaskHandler);
 pageContentEl.addEventListener("drop", dropTaskHandler);
+
+loadTasks();
